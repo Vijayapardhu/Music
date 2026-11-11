@@ -5,6 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class GeniusTest {
@@ -107,8 +108,20 @@ class GeniusTest {
         assertEquals("Line 3", lines[5].text)
     }
 
+    /*
+     * Live network test: this scrapes genius.com for real songs. Genius rate-limits,
+     * blocks CI egress IPs and changes its markup, so asserting on the result here
+     * fails the whole build for reasons unrelated to this code. It is skipped by
+     * default and runs only when asked: set BITCHORD_LIVE_TESTS=1 (or pass
+     * -Dbitchord.liveTests=1).
+     */
     @Test
     fun `live genius search and scraping test with noisy titles`() = kotlinx.coroutines.runBlocking {
+        assumeTrue(
+            "Live Genius test — set BITCHORD_LIVE_TESTS=1 to run it",
+            System.getenv("BITCHORD_LIVE_TESTS") == "1" ||
+                System.getProperty("bitchord.liveTests") == "1",
+        )
         println("--- TEST 1: Queen - Bohemian Rhapsody (Official Video) ---")
         val lyrics1 = Genius.lyrics("Bohemian Rhapsody (Official Video)", "Queen")
         assertNotNull(lyrics1)
